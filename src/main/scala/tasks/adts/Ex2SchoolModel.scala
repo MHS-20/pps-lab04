@@ -1,6 +1,8 @@
 package tasks.adts
 import u03.extensionmethods.Optionals.*
 import u03.extensionmethods.Sequences.*
+import u03.extensionmethods.Sequences.Sequence.*
+import u02.Tuples.Tup2
 
 /*  Exercise 2: 
  *  Implement the below trait, and write a meaningful test.
@@ -9,7 +11,6 @@ import u03.extensionmethods.Sequences.*
  *  - For other suggestions look directly to the methods and their description
  */
 object SchoolModel:
-
   trait SchoolModule:
     type School
     type Teacher
@@ -24,6 +25,7 @@ object SchoolModel:
      * @return the teacher created
      */
     def teacher(name: String): Teacher
+
     /**
      * This a factory method for create a course from a name
      * e.g.,
@@ -44,6 +46,7 @@ object SchoolModel:
      */
     def emptySchool: School
     extension (school: School)
+
       /**
        * This method should return the list of courses
        * e.g.,
@@ -56,6 +59,7 @@ object SchoolModel:
        * @return the list of courses
        */
       def courses: Sequence[String]
+
       /**
        * This method should return the list of teachers
        * e.g.,
@@ -69,6 +73,7 @@ object SchoolModel:
        * @return the list of teachers
        */
       def teachers: Sequence[String]
+      
       /**
        * This method should return a new school with the teacher assigned to the course
        * e.g.,
@@ -76,6 +81,7 @@ object SchoolModel:
        *   .setTeacherToCourse(teacher("John"), course("Math")) // => School(courses = Cons("Math", Nil()), teachers = Cons("John", Nil()), teacherToCourses = Cons(("John", "Math"), Nil()))
        *  */
       def setTeacherToCourse(teacher: Teacher, course: Course): School
+      
       /**
        * This method should return the list of courses assigned to a teacher
        * e.g.,
@@ -90,6 +96,7 @@ object SchoolModel:
        * @return the list of courses assigned to a teacher
        */
       def coursesOfATeacher(teacher: Teacher): Sequence[Course]
+      
       /**
        * This method should return true if the teacher is present in the school
        * e.g.,
@@ -100,6 +107,7 @@ object SchoolModel:
        *
        */
       def hasTeacher(name: String): Boolean
+      
       /**
        * This method should return true if the course is present in the school
        * e.g.,
@@ -111,21 +119,42 @@ object SchoolModel:
        */
       def hasCourse(name: String): Boolean
   object BasicSchoolModule extends SchoolModule:
-    override type School = Nothing
-    override type Teacher = Nothing
-    override type Course = Nothing
+    override type School = Sequence[(Teacher,Course)]
+    override type Teacher = String
+    override type Course = String
 
-    def teacher(name: String): Teacher = ???
-    def course(name: String): Course = ???
-    def emptySchool: School = ???
+    def teacher(name: String): Teacher = name
+    def course(name: String): Course = name
+    def emptySchool: School = Nil()
 
     extension (school: School)
-      def courses: Sequence[String] = ???
-      def teachers: Sequence[String] = ???
-      def setTeacherToCourse(teacher: Teacher, course: Course): School = ???
-      def coursesOfATeacher(teacher: Teacher): Sequence[Course] = ???
-      def hasTeacher(name: String): Boolean = ???
-      def hasCourse(name: String): Boolean = ???
+      def courses: Sequence[String] = school match
+        case Cons((teacher, course), t) => Cons(course, t.courses)
+        case _ => Nil()
+      
+      def teachers: Sequence[String] = school match
+        case Cons((teacher, course), t) => Cons(teacher, t.teachers)
+        case _ => Nil()
+      
+      def setTeacherToCourse(teacher: Teacher, course: Course): School =
+        Cons((teacher, course), school)
+//        case Cons((t, c), tail) if t == teacher => Cons((t, c), Cons((t, course), tail.setTeacherToCourse(teacher, course)))
+//        case _ => Nil()
+
+      def coursesOfATeacher(teacher: Teacher): Sequence[Course] = school match
+        case Cons((t, c), tail) if teacher == t => Cons(c, tail.coursesOfATeacher(teacher))
+        case _ => Nil()
+        
+      def hasTeacher(name: String): Boolean = school match
+        case Cons((t, c), tail) if t == name => true
+        case Cons((t, c), tail) => tail.hasTeacher(name)
+        case _ => false
+      
+      def hasCourse(name: String): Boolean = school match
+        case Cons((t, c), tail) if c == name => true
+        case Cons((t, c), tail) => tail.hasCourse(name)
+        case _ => false
+
 @main def examples(): Unit =
   import SchoolModel.BasicSchoolModule.*
   val school = emptySchool
@@ -133,15 +162,20 @@ object SchoolModel:
   println(school.courses) // Nil()
   println(school.hasTeacher("John")) // false
   println(school.hasCourse("Math")) // false
+  println()
+
   val john = teacher("John")
-  val math = course("Math")
+  val math = course("Math")  
   val italian = course("Italian")
   val school2 = school.setTeacherToCourse(john, math)
+  println(school2)
   println(school2.teachers) // Cons("John", Nil())
   println(school2.courses) // Cons("Math", Nil())
   println(school2.hasTeacher("John")) // true
   println(school2.hasCourse("Math")) // true
   println(school2.hasCourse("Italian")) // false
+  println()
+
   val school3 = school2.setTeacherToCourse(john, italian)
   println(school3.teachers) // Cons("John", Nil())
   println(school3.courses) // Cons("Math", Cons("Italian", Nil()))
@@ -149,5 +183,3 @@ object SchoolModel:
   println(school3.hasCourse("Math")) // true
   println(school3.hasCourse("Italian")) // true
   println(school3.coursesOfATeacher(john)) // Cons("Math", Cons("Italian", Nil()))
-
-

@@ -2,7 +2,7 @@ package tasks.adts
 
 import org.junit.*
 import org.junit.Assert.*
-import tasks.adts.Ex3Stacks.StackImpl
+import tasks.adts.Ex3Stack.StackImpl
 import u03.Sequences.Sequence
 import u03.Optionals.Optional
 
@@ -11,8 +11,6 @@ import u03.Optionals.Optional
 */
 
 class Stacktest:
-
-
   val stack = StackImpl
 
   import stack.*
